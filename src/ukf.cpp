@@ -60,6 +60,8 @@ UKF::UKF() {
 
   Hint: one or more values initialized above might be wildly off...
   */
+
+  is_initialized_ = false
 }
 
 UKF::~UKF() {}
@@ -69,6 +71,34 @@ UKF::~UKF() {}
  * either radar or laser.
  */
 void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
+  if (!is_initialized_) {
+    time_us_ = meas_package.timestamp_;
+
+    // set initial state
+    if (meas_package.sensor_type_ == MeasurementPackage::SensorType::RADAR) {
+      double rho = meas_package.raw_measurements_(0),
+             gamma = meas_package.raw_measurements_(1),
+             rho_dot = meas_package.raw_measurements(2);
+
+      x_ << rho * cos(gamma),  // pos_x
+            rho * sin(gamma),  // pos_y
+            0,                 // v_abs (curious what happens when we use fabs(rho_dot))
+            0,                 // yaw_angle (curious what happens when we use gamma + (rho_dot < 0 ? pi : 0))
+            0;                 // yaw_rate
+    } else {
+      double px = meas_package.raw_measurements_(0),
+             py = meas_package.raw_measurements_(1);
+
+      x_ << px, py, 0, 0, 0;
+    }
+
+    P_ << MatrixXd::Identity(5, 5);
+
+    is_initialized_ = true;
+
+    return;
+  }
+
   /**
   TODO:
 
