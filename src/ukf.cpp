@@ -251,7 +251,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     // rho
     Zsig(0, i) = sqrt(px * px + py * py);
     // gamma
-    Zsig(1, i) = arctan2(py, px);
+    Zsig(1, i) = atan2(py, px);
     // rho_dot
     Zsig(2, i) = (px * cos(yaw) * v + py * cos(yaw) * v) / Zsig(0, i);
   }
