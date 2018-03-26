@@ -38,3 +38,10 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   VectorXd rmse = (sqDiffSum / estimations.size()).array().sqrt();
   return rmse;
 }
+
+
+double Tools::NormalizeAngle(double theta) {
+  // normalize theta to be between -pi and pi
+  // have to jump through hoops because fmod returns same sign as first operand
+  return fmod(fmod(theta, 2 * M_PI) + 3 * M_PI, 2 * M_PI) - M_PI;
+}
