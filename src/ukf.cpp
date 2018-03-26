@@ -185,9 +185,9 @@ void UKF::Prediction(double delta_t) {
       Xsig_pred_(0, i) = px + v * cos(yaw) * delta_t;
       Xsig_pred_(1, i) = py + v * sin(yaw) * delta_t;
     } else {
-      Xsig_pred_(0, i) = v / yaw_dot
+      Xsig_pred_(0, i) = px + v / yaw_dot
                          * (sin(yaw + yaw_dot * delta_t) - sin(yaw));
-      Xsig_pred_(1, i) = v / yaw_dot
+      Xsig_pred_(1, i) = py + v / yaw_dot
                          * (-cos(yaw + yaw_dot * delta_t) + cos(yaw));
     }
     Xsig_pred_(0, i) += 0.5 * delta_t * delta_t * cos(yaw) * nu_a;
