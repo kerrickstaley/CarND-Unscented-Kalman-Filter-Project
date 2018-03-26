@@ -277,6 +277,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   S.setZero();
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {
     VectorXd diff = Zsig.col(i) - z_pred;
+    diff(1) = tools_.NormalizeAngle(diff(1));
     S += weights_(i) * diff * diff.transpose();
   }
   S += R_radar_;
