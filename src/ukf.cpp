@@ -144,6 +144,42 @@ void UKF::Prediction(double delta_t) {
     Xsig.col(1 + n_aug_ + i) = x_aug - spread.col(i);
   }
 
+  // run sigma points through prediction function
+  for (int i = 0; i < 2 * n_aug + 1; i++) {
+    double px = Xsig(0, i);
+    double py = Xsig(1, i);
+    double v = Xsig(2, i);
+    double yaw = Xsig(3, i);
+    double yaw_dot = Xsig(4, i);
+    double nu_a = Xsig(5, i);
+    double nu_yaw = Xsig(6, i);
+
+    // calculate updated px and py
+    // check for zero yaw_dot case
+    if (fabs(yaw_dot) < 1e-6) {
+      Xsig_pred_(0, i) = px + v * cos(yaw) * delta_t
+                         + 0.5 * delta_t * delta_t * cos(yaw) * nu_a;
+      Xsig_pred_(1, i) = py + v * sin(yaw) * delta_t
+                         + 0.5 * delta_t * delta_t * sin(yaw) * nu_a;
+    } else {
+      Xsig_pred_(0, i) = v / yaw_dot
+                         * (sin(yaw + yaw_dot * delta_t) - sin(yaw))
+                         + 0.5 * delta_t * delta_t * cos(yaw) * nu_a;
+      Xsig_pred_(1, i) = v / yaw_dot
+                         * (-cos(yaw + yaw_dot * delta_t) + cos(yaw))
+                         + 0.5 * delta_t * delta_t * sin(yaw) * nu_a;
+    }
+
+    // calculate updated v
+    Xsig_pred_(2, i) = v + delta_t * nu_a;
+
+    // calculate updated yaw
+    Xsig_pred_(3, i) = yaw + yaw_dot * delta_t + 0.5 * delta_t * delta_t * nu_yaw;
+
+    // calculate updated yaw_dot
+    Xsig_pred_(4, i) = yaw_dot + delta_t * nu_yaw;
+  }
+
   /**
   TODO:
 
