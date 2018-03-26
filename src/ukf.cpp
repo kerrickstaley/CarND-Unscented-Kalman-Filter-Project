@@ -72,7 +72,7 @@ UKF::UKF() {
 
   // initialize H_laser_ and R_laser_
   H_laser_ = MatrixXd(2, n_x_);
-  H_laser_.fillZero();
+  H_laser_.setZero();
   H_laser_(0, 0) = 1;
   H_laser_(1, 1) = 1;
 
@@ -141,12 +141,12 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 void UKF::Prediction(double delta_t) {
   // calculate augmented state mean vector
   VectorXd x_aug(n_aug_);
-  x_aug.fillZero();
+  x_aug.setZero();
   x_aug.head(n_x_) = x_;
 
   // calculate augmented state covariance matrix
   MatrixXd P_aug(n_aug_, n_aug_);
-  P_aug.fillZero();
+  P_aug.setZero();
   P_aug.topLeftCorner(n_x_, n_x_) = P_;
   P_aug(n_x_, n_x_) = std_a_ * std_a;
   P_aug(n_x_ + 1, n_x_ + 1) = std_yawdd_ * std_yawdd_;
@@ -198,13 +198,13 @@ void UKF::Prediction(double delta_t) {
   }
 
   // calculate updated state vector
-  x_.fillZero();
+  x_.setZero();
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {
     x_ += weights_(i) * Xsig_pred_.col(i);
   }
 
   // calculate updated state covariance matrix
-  P_.fillZero();
+  P_.setZero();
   for (int i = 1; i < 2 * n_aug_ + 1; i++) {
     VectorXd diff = Xsig_pred_.col(i) - x_;
     P_ += weights_(i) * diff * diff.transpose();
@@ -258,14 +258,14 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
   // calculate z_pred
   VectorXd z_pred(3);
-  z_pred.fillZero();
+  z_pred.setZero();
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {
     z_pred += weights_(i) * Zsig.col(i);
   }
 
   // calculate S
   MatrixXd S(3, 3);
-  S.fillZero();
+  S.setZero();
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {
     VectorXd diff = Zsig.col(i) - z_pred;
     S += weights(i) * diff * diff.transpose();
@@ -274,7 +274,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
   // compute cross correlation matrix T
   MatrixXd T(n_x_, 3);
-  T.fillZero();
+  T.setZero();
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {
     T += weights(i) * (Xsig_pred_.col(i) - x_) * (Zsig.col(i) - z_pred).transpose();
   }
