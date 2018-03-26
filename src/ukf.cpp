@@ -70,6 +70,8 @@ UKF::UKF() {
   weights_.fill(1 / (2.0 * (lambda_ + n_aug_)));
   weights_(0) = lambda_ / (lambda_ + n_aug_);
 
+  Xsig_pred_ = MatrixXd(n_x_, 2 * n_aug_ + 1);
+
   // initialize H_laser_ and R_laser_
   H_laser_ = MatrixXd(2, n_x_);
   H_laser_.setZero();
