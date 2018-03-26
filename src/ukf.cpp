@@ -262,7 +262,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     // gamma
     Zsig(1, i) = atan2(py, px);
     // rho_dot
-    Zsig(2, i) = (px * cos(yaw) * v + py * cos(yaw) * v) / Zsig(0, i);
+    Zsig(2, i) = (px * cos(yaw) * v + py * sin(yaw) * v) / Zsig(0, i);
   }
 
   // calculate z_pred
