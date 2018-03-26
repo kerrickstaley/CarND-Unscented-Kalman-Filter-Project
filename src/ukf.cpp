@@ -66,21 +66,21 @@ UKF::UKF() {
   n_aug_ = 7;
   lambda_ = 3 - n_aug_;
 
-  weights_ =  VectorXD(2 * n_aug_ + 1);
+  weights_ =  VectorXd(2 * n_aug_ + 1);
   weights_.fill(1 / (2.0 * (lambda_ + n_aug_)));
   weights_(0) = lambda_ / (lambda_ + n_aug_);
 
   // initialize H_laser_ and R_laser_
-  H_laser_ = MatrixXD(2, n_x_);
+  H_laser_ = MatrixXd(2, n_x_);
   H_laser_.fillZero();
   H_laser_(0, 0) = 1;
   H_laser_(1, 1) = 1;
 
-  R_laser_ = MatrixXD(2, 2);
+  R_laser_ = MatrixXd(2, 2);
   R_laser_ << std_laspx_ * std_laspx_, 0,
               0, std_laspy_ * std_laspy_;
 
-  R_radar_  = MatrixXD(3, 3);
+  R_radar_  = MatrixXd(3, 3);
   R_radar_ << std_radr_ * std_radr_, 0, 0,
               0, std_radphi_ * std_radphi_, 0,
               0, 0, std_radrd_ * std_radrd_;
@@ -140,21 +140,21 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
  */
 void UKF::Prediction(double delta_t) {
   // calculate augmented state mean vector
-  VectorXD x_aug(n_aug_);
+  VectorXd x_aug(n_aug_);
   x_aug.fillZero();
   x_aug.head(n_x_) = x_;
 
   // calculate augmented state covariance matrix
-  MatrixXD P_aug(n_aug_, n_aug_);
+  MatrixXd P_aug(n_aug_, n_aug_);
   P_aug.fillZero();
   P_aug.topLeftCorner(n_x_, n_x_) = P_;
   P_aug(n_x_, n_x_) = std_a_ * std_a;
   P_aug(n_x_ + 1, n_x_ + 1) = std_yawdd_ * std_yawdd_;
 
   // calculate sigma points
-  MatrixXD Xsig(n_aug_, 2 * n_aug_ + 1);
-  MatrixXD P_aug_sqrt = P_aug.llt().matrixL();
-  MatrixXD spread = sqrt(lambda + n_aug_) * P_aug_sqrt;
+  MatrixXd Xsig(n_aug_, 2 * n_aug_ + 1);
+  MatrixXd P_aug_sqrt = P_aug.llt().matrixL();
+  MatrixXd spread = sqrt(lambda + n_aug_) * P_aug_sqrt;
 
   Xsig.col(0) = x_aug;
 
@@ -206,7 +206,7 @@ void UKF::Prediction(double delta_t) {
   // calculate updated state covariance matrix
   P_.fillZero();
   for (int i = 1; i < 2 * n_aug_ + 1; i++) {
-    VectorXD diff = Xsig_pred_.col(i) - x_;
+    VectorXd diff = Xsig_pred_.col(i) - x_;
     P_ += weights_(i) * diff * diff.transpose();
   }
 }
@@ -217,13 +217,13 @@ void UKF::Prediction(double delta_t) {
  */
 void UKF::UpdateLidar(MeasurementPackage meas_package) {
   // lidar measurement is linear, so we just use the standard KF equations instead of UKF
-  MatrixXD& H = H_laser_;
-  MatrixXD& R = R_laser_;
+  MatrixXd& H = H_laser_;
+  MatrixXd& R = R_laser_;
 
-  VectorXD y = meas_package.raw_measurements_ - H * x_;
-  MatrixXD S = H * P_ * H.transpose() + R;
+  VectorXd y = meas_package.raw_measurements_ - H * x_;
+  MatrixXd S = H * P_ * H.transpose() + R;
 
-  MatrixXD K = P_ * H.transpose() * S.inverse();
+  MatrixXd K = P_ * H.transpose() * S.inverse();
 
   x_ += K * y;
   P_ -= K * H * P_;
@@ -241,7 +241,7 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
  */
 void UKF::UpdateRadar(MeasurementPackage meas_package) {
   // calculate sigma points
-  MatrixXD Zsig(3, 2 * n_aug_ + 1);
+  MatrixXd Zsig(3, 2 * n_aug_ + 1);
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {
     double px = Xsig_pred_(0, i);
     double py = Xsig_pred_(1, i);
@@ -257,33 +257,33 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   }
 
   // calculate z_pred
-  VectorXD z_pred(3);
+  VectorXd z_pred(3);
   z_pred.fillZero();
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {
     z_pred += weights_(i) * Zsig.col(i);
   }
 
   // calculate S
-  MatrixXD S(3, 3);
+  MatrixXd S(3, 3);
   S.fillZero();
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {
-    VectorXD diff = Zsig.col(i) - z_pred;
+    VectorXd diff = Zsig.col(i) - z_pred;
     S += weights(i) * diff * diff.transpose();
   }
   S += R_radar_;
 
   // compute cross correlation matrix T
-  MatrixXD T(n_x_, 3);
+  MatrixXd T(n_x_, 3);
   T.fillZero();
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {
     T += weights(i) * (Xsig_pred_.col(i) - x_) * (Zsig.col(i) - z_pred).transpose();
   }
 
   // compute Kalman gain
-  MatrixXD K = T * S.inverse();
+  MatrixXd K = T * S.inverse();
 
   // calculate innovation
-  VectorXD y = meas_package.raw_measurements_ - z_pred;
+  VectorXd y = meas_package.raw_measurements_ - z_pred;
 
   // update state vector
   x_ += K * y;

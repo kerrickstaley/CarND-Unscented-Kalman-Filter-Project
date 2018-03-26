@@ -56,13 +56,13 @@ public:
   double std_radrd_ ;
 
   ///* Measurement function for laser (linear)
-  MatrixXD H_laser_;
+  MatrixXd H_laser_;
 
   ///* Measurement noise matrix for laser
-  MatrixXD R_laser_;
+  MatrixXd R_laser_;
 
   ///* Measurement noise matrix for radar
-  MatrixXD R_radar_;
+  MatrixXd R_radar_;
 
   ///* Weights of sigma points
   VectorXd weights_;
