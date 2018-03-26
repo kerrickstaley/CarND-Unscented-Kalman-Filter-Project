@@ -194,6 +194,16 @@ void UKF::Prediction(double delta_t) {
     VectorXD diff = Xsig_pred_.col(i) - x_;
     P_ += weights_(i) * diff * diff.transpose();
   }
+
+  // initialize H_laser_ and R_laser_
+  H_laser_ = MatrixXD(2, n_x_);
+  H_laser_.fillZero();
+  H_laser_(0, 0) = 1;
+  H_laser_(1, 1) = 1;
+
+  R_laser_ = MatrixXD(2, 2);
+  R_laser_ << std_laspx_ * std_laspx_, 0,
+              0, std_laspy_ * std_laspy_;
 }
 
 /**
@@ -201,11 +211,20 @@ void UKF::Prediction(double delta_t) {
  * @param {MeasurementPackage} meas_package
  */
 void UKF::UpdateLidar(MeasurementPackage meas_package) {
+  // lidar measurement is linear, so we just use the standard KF equations instead of UKF
+  MatrixXD& H = H_laser_;
+  MatrixXD& R = R_laser_;
+
+  VectorXD y = meas_package.raw_measurements_ - H * x_;
+  MatrixXD S = H * P_ * H.transpose() + R;
+
+  MatrixXD K = P_ * H.transpose() * S.inverse();
+
+  x_ += K * y;
+  P_ -= K * H * P_;
+
   /**
   TODO:
-
-  Complete this function! Use lidar data to update the belief about the object's
-  position. Modify the state vector, x_, and covariance, P_.
 
   You'll also need to calculate the lidar NIS.
   */
