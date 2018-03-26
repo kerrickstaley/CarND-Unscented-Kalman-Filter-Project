@@ -129,9 +129,13 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   Prediction(delta_t);
 
   if (meas_package.sensor_type_ == MeasurementPackage::SensorType::LASER) {
-    UpdateLidar(meas_package);
+    if (use_laser_) {
+      UpdateLidar(meas_package);
+    }
   } else {
-    UpdateRadar(meas_package);
+    if (use_radar_) {
+      UpdateRadar(meas_package);
+    }
   }
 }
 
