@@ -105,7 +105,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     } else {
       double rho = meas_package.raw_measurements_(0),
              gamma = meas_package.raw_measurements_(1),
-             rho_dot = meas_package.raw_measurements(2);
+             rho_dot = meas_package.raw_measurements_(2);
 
       x_ << rho * cos(gamma),  // pos_x
             rho * sin(gamma),  // pos_y
@@ -122,7 +122,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   }
 
   double delta_t = (meas_package.timestamp_ - time_us_) / 1.0e6;
-  time_us = meas_package.timestamp_;
+  time_us_ = meas_package.timestamp_;
 
   Prediction(delta_t);
 
@@ -148,13 +148,13 @@ void UKF::Prediction(double delta_t) {
   MatrixXd P_aug(n_aug_, n_aug_);
   P_aug.setZero();
   P_aug.topLeftCorner(n_x_, n_x_) = P_;
-  P_aug(n_x_, n_x_) = std_a_ * std_a;
+  P_aug(n_x_, n_x_) = std_a_ * std_a_;
   P_aug(n_x_ + 1, n_x_ + 1) = std_yawdd_ * std_yawdd_;
 
   // calculate sigma points
   MatrixXd Xsig(n_aug_, 2 * n_aug_ + 1);
   MatrixXd P_aug_sqrt = P_aug.llt().matrixL();
-  MatrixXd spread = sqrt(lambda + n_aug_) * P_aug_sqrt;
+  MatrixXd spread = sqrt(lambda_ + n_aug_) * P_aug_sqrt;
 
   Xsig.col(0) = x_aug;
 
@@ -164,7 +164,7 @@ void UKF::Prediction(double delta_t) {
   }
 
   // run sigma points through prediction function
-  for (int i = 0; i < 2 * n_aug + 1; i++) {
+  for (int i = 0; i < 2 * n_aug_ + 1; i++) {
     double px = Xsig(0, i);
     double py = Xsig(1, i);
     double v = Xsig(2, i);
@@ -184,8 +184,8 @@ void UKF::Prediction(double delta_t) {
       Xsig_pred_(1, i) = v / yaw_dot
                          * (-cos(yaw + yaw_dot * delta_t) + cos(yaw));
     }
-    Xsig_pred(0, i) += 0.5 * delta_t * delta_t * cos(yaw) * nu_a;
-    Xsig_pred(1, i) += 0.5 * delta_t * delta_t * sin(yaw) * nu_a;
+    Xsig_pred_(0, i) += 0.5 * delta_t * delta_t * cos(yaw) * nu_a;
+    Xsig_pred_(1, i) += 0.5 * delta_t * delta_t * sin(yaw) * nu_a;
 
     // calculate updated v
     Xsig_pred_(2, i) = v + delta_t * nu_a;
@@ -246,7 +246,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     double px = Xsig_pred_(0, i);
     double py = Xsig_pred_(1, i);
     double v = Xsig_pred_(2, i);
-    double yaw = Xsig_pred(3, i);
+    double yaw = Xsig_pred_(3, i);
 
     // rho
     Zsig(0, i) = sqrt(px * px + py * py);
@@ -268,7 +268,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   S.setZero();
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {
     VectorXd diff = Zsig.col(i) - z_pred;
-    S += weights(i) * diff * diff.transpose();
+    S += weights_(i) * diff * diff.transpose();
   }
   S += R_radar_;
 
@@ -276,7 +276,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   MatrixXd T(n_x_, 3);
   T.setZero();
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {
-    T += weights(i) * (Xsig_pred_.col(i) - x_) * (Zsig.col(i) - z_pred).transpose();
+    T += weights_(i) * (Xsig_pred_.col(i) - x_) * (Zsig.col(i) - z_pred).transpose();
   }
 
   // compute Kalman gain
