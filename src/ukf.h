@@ -61,6 +61,9 @@ public:
   ///* Measurement noise matrix for laser
   MatrixXD R_laser_;
 
+  ///* Measurement noise matrix for radar
+  MatrixXD R_radar_;
+
   ///* Weights of sigma points
   VectorXd weights_;
 

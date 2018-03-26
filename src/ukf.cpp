@@ -79,6 +79,11 @@ UKF::UKF() {
   R_laser_ = MatrixXD(2, 2);
   R_laser_ << std_laspx_ * std_laspx_, 0,
               0, std_laspy_ * std_laspy_;
+
+  R_radar_  = MatrixXD(3, 3);
+  R_radar_ << std_radr_ * std_radr_, 0, 0,
+              0, std_radphi_ * std_radphi_, 0,
+              0, 0, std_radrd_ * std_radrd_;
 }
 
 UKF::~UKF() {}
@@ -235,11 +240,58 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
  * @param {MeasurementPackage} meas_package
  */
 void UKF::UpdateRadar(MeasurementPackage meas_package) {
+  // calculate sigma points
+  MatrixXD Zsig(3, 2 * n_aug_ + 1);
+  for (int i = 0; i < 2 * n_aug_ + 1; i++) {
+    double px = Xsig_pred_(0, i);
+    double py = Xsig_pred_(1, i);
+    double v = Xsig_pred_(2, i);
+    double yaw = Xsig_pred(3, i);
+
+    // rho
+    Zsig(0, i) = sqrt(px * px + py * py);
+    // gamma
+    Zsig(1, i) = arctan2(py, px);
+    // rho_dot
+    Zsig(2, i) = (px * cos(yaw) * v + py * cos(yaw) * v) / Zsig(0, i);
+  }
+
+  // calculate z_pred
+  VectorXD z_pred(3);
+  z_pred.fillZero();
+  for (int i = 0; i < 2 * n_aug_ + 1; i++) {
+    z_pred += weights_(i) * Zsig.col(i);
+  }
+
+  // calculate S
+  MatrixXD S(3, 3);
+  S.fillZero();
+  for (int i = 0; i < 2 * n_aug_ + 1; i++) {
+    VectorXD diff = Zsig.col(i) - z_pred;
+    S += weights(i) * diff * diff.transpose();
+  }
+  S += R_radar_;
+
+  // compute cross correlation matrix T
+  MatrixXD T(n_x_, 3);
+  T.fillZero();
+  for (int i = 0; i < 2 * n_aug_ + 1; i++) {
+    T += weights(i) * (Xsig_pred_.col(i) - x_) * (Zsig.col(i) - z_pred).transpose();
+  }
+
+  // compute Kalman gain
+  MatrixXD K = T * S.inverse();
+
+  // calculate innovation
+  VectorXD y = meas_package.raw_measurements_ - z_pred;
+
+  // update state vector
+  x_ += K * y;
+
+  // update state covariance matrix
+  P_ -= K * S * K.transpose()
   /**
   TODO:
-
-  Complete this function! Use radar data to update the belief about the object's
-  position. Modify the state vector, x_, and covariance, P_.
 
   You'll also need to calculate the radar NIS.
   */
