@@ -197,7 +197,8 @@ void UKF::Prediction(double delta_t) {
     Xsig_pred_(2, i) = v + delta_t * nu_a;
 
     // calculate updated yaw
-    Xsig_pred_(3, i) = yaw + yaw_dot * delta_t + 0.5 * delta_t * delta_t * nu_yaw;
+    Xsig_pred_(3, i) = tools_.NormalizeAngle(
+      yaw + yaw_dot * delta_t + 0.5 * delta_t * delta_t * nu_yaw);
 
     // calculate updated yaw_dot
     Xsig_pred_(4, i) = yaw_dot + delta_t * nu_yaw;
@@ -213,6 +214,7 @@ void UKF::Prediction(double delta_t) {
   P_.setZero();
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {
     VectorXd diff = Xsig_pred_.col(i) - x_;
+    diff(3) = tools_.NormalizeAngle(diff(3));
     P_ += weights_(i) * diff * diff.transpose();
   }
 }
@@ -232,6 +234,7 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   MatrixXd K = P_ * H.transpose() * S.inverse();
 
   x_ += K * y;
+  x_(3) = tools_.NormalizeAngle(x_(3));
   P_ -= K * H * P_;
 
   /**
