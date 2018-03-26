@@ -69,6 +69,16 @@ UKF::UKF() {
   weights_ =  VectorXD(2 * n_aug_ + 1);
   weights_.fill(1 / (2.0 * (lambda_ + n_aug_)));
   weights_(0) = lambda_ / (lambda_ + n_aug_);
+
+  // initialize H_laser_ and R_laser_
+  H_laser_ = MatrixXD(2, n_x_);
+  H_laser_.fillZero();
+  H_laser_(0, 0) = 1;
+  H_laser_(1, 1) = 1;
+
+  R_laser_ = MatrixXD(2, 2);
+  R_laser_ << std_laspx_ * std_laspx_, 0,
+              0, std_laspy_ * std_laspy_;
 }
 
 UKF::~UKF() {}
@@ -194,16 +204,6 @@ void UKF::Prediction(double delta_t) {
     VectorXD diff = Xsig_pred_.col(i) - x_;
     P_ += weights_(i) * diff * diff.transpose();
   }
-
-  // initialize H_laser_ and R_laser_
-  H_laser_ = MatrixXD(2, n_x_);
-  H_laser_.fillZero();
-  H_laser_(0, 0) = 1;
-  H_laser_(1, 1) = 1;
-
-  R_laser_ = MatrixXD(2, 2);
-  R_laser_ << std_laspx_ * std_laspx_, 0,
-              0, std_laspy_ * std_laspy_;
 }
 
 /**
