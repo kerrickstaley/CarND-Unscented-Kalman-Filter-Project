@@ -65,6 +65,10 @@ UKF::UKF() {
   n_x_ = 5;
   n_aug_ = 7;
   lambda_ = 3 - n_aug_;
+
+  weights_ =  VectorXD(2 * n_aug_ + 1);
+  weights_.fill(1 / (2.0 * (lambda_ + n_aug_)));
+  weights_(0) = lambda_ / (lambda_ + n_aug_);
 }
 
 UKF::~UKF() {}
@@ -178,22 +182,17 @@ void UKF::Prediction(double delta_t) {
     Xsig_pred_(4, i) = yaw_dot + delta_t * nu_yaw;
   }
 
-  // calculate weights for updated state / covariance
-  VectorXD weights(2 * n_aug_ + 1);
-  weights.fill(1 / (2.0 * (lambda_ + n_aug_)));
-  weights(0) = lambda_ / (lambda_ + n_aug_);
-
   // calculate updated state vector
   x_.fillZero();
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {
-    x_ += weights(i) * Xsig_pred_.col(i);
+    x_ += weights_(i) * Xsig_pred_.col(i);
   }
 
   // calculate updated state covariance matrix
   P_.fillZero();
   for (int i = 1; i < 2 * n_aug_ + 1; i++) {
     VectorXD diff = Xsig_pred_.col(i) - x_;
-    P_ += weights(i) * diff * diff.transpose();
+    P_ += weights_(i) * diff * diff.transpose();
   }
 }
 
