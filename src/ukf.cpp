@@ -178,14 +178,23 @@ void UKF::Prediction(double delta_t) {
     Xsig_pred_(4, i) = yaw_dot + delta_t * nu_yaw;
   }
 
+  // calculate weights for updated state / covariance
+  VectorXD weights(2 * n_aug_ + 1);
+  weights.fill(1 / (2.0 * (lambda_ + n_aug_)));
+  weights(0) = lambda_ / (lambda_ + n_aug_);
 
+  // calculate updated state vector
+  x_.fillZero();
+  for (int i = 0; i < 2 * n_aug_ + 1; i++) {
+    x_ += weights(i) * Xsig_pred_.col(i);
+  }
 
-  /**
-  TODO:
-
-  Complete this function! Estimate the object's location. Modify the state
-  vector, x_. Predict sigma points, the state, and the state covariance matrix.
-  */
+  // calculate updated state covariance matrix
+  P_.fillZero();
+  for (int i = 1; i < 2 * n_aug_ + 1; i++) {
+    VectorXD diff = Xsig_pred_.col(i) - x_;
+    P_ += weights(i) * diff * diff.transpose();
+  }
 }
 
 /**
