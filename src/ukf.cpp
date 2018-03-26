@@ -289,7 +289,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   x_ += K * y;
 
   // update state covariance matrix
-  P_ -= K * S * K.transpose()
+  P_ -= K * S * K.transpose();
   /**
   TODO:
 
