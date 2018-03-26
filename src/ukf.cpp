@@ -157,18 +157,16 @@ void UKF::Prediction(double delta_t) {
     // calculate updated px and py
     // check for zero yaw_dot case
     if (fabs(yaw_dot) < 1e-6) {
-      Xsig_pred_(0, i) = px + v * cos(yaw) * delta_t
-                         + 0.5 * delta_t * delta_t * cos(yaw) * nu_a;
-      Xsig_pred_(1, i) = py + v * sin(yaw) * delta_t
-                         + 0.5 * delta_t * delta_t * sin(yaw) * nu_a;
+      Xsig_pred_(0, i) = px + v * cos(yaw) * delta_t;
+      Xsig_pred_(1, i) = py + v * sin(yaw) * delta_t;
     } else {
       Xsig_pred_(0, i) = v / yaw_dot
-                         * (sin(yaw + yaw_dot * delta_t) - sin(yaw))
-                         + 0.5 * delta_t * delta_t * cos(yaw) * nu_a;
+                         * (sin(yaw + yaw_dot * delta_t) - sin(yaw));
       Xsig_pred_(1, i) = v / yaw_dot
-                         * (-cos(yaw + yaw_dot * delta_t) + cos(yaw))
-                         + 0.5 * delta_t * delta_t * sin(yaw) * nu_a;
+                         * (-cos(yaw + yaw_dot * delta_t) + cos(yaw));
     }
+    Xsig_pred(0, i) += 0.5 * delta_t * delta_t * cos(yaw) * nu_a;
+    Xsig_pred(1, i) += 0.5 * delta_t * delta_t * sin(yaw) * nu_a;
 
     // calculate updated v
     Xsig_pred_(2, i) = v + delta_t * nu_a;
@@ -179,6 +177,8 @@ void UKF::Prediction(double delta_t) {
     // calculate updated yaw_dot
     Xsig_pred_(4, i) = yaw_dot + delta_t * nu_yaw;
   }
+
+
 
   /**
   TODO:
