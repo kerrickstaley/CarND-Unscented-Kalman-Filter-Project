@@ -61,7 +61,10 @@ UKF::UKF() {
   Hint: one or more values initialized above might be wildly off...
   */
 
-  is_initialized_ = false
+  is_initialized_ = false;
+  n_x_ = 5;
+  n_aug_ = 7;
+  lambda_ = 3 - n_aug_;
 }
 
 UKF::~UKF() {}
@@ -109,13 +112,6 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   } else {
     UpdateRadar(meas_package);
   }
-
-  /**
-  TODO:
-
-  Complete this function! Make sure you switch between lidar and radar
-  measurements.
-  */
 }
 
 /**
@@ -124,6 +120,30 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
  * measurement and this one.
  */
 void UKF::Prediction(double delta_t) {
+  // calculate augmented state mean vector
+  VectorXD x_aug(n_aug_);
+  x_aug.fillZero();
+  x_aug.head(n_x_) = x_;
+
+  // calculate augmented state covariance matrix
+  MatrixXD P_aug(n_aug_, n_aug_);
+  P_aug.fillZero();
+  P_aug.topLeftCorner(n_x_, n_x_) = P_;
+  P_aug(n_x_, n_x_) = std_a_ * std_a;
+  P_aug(n_x_ + 1, n_x_ + 1) = std_yawdd_ * std_yawdd_;
+
+  // calculate sigma points
+  MatrixXD Xsig(n_aug_, 2 * n_aug_ + 1);
+  MatrixXD P_aug_sqrt = P_aug.llt().matrixL();
+  MatrixXD spread = sqrt(lambda + n_aug_) * P_aug_sqrt;
+
+  Xsig.col(0) = x_aug;
+
+  for (int i = 0; i < n_aug_; i++) {
+    Xsig.col(1 + i) = x_aug + spread.col(i);
+    Xsig.col(1 + n_aug_ + i) = x_aug - spread.col(i);
+  }
+
   /**
   TODO:
 
