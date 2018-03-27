@@ -24,17 +24,9 @@ UKF::UKF() {
   // initial covariance matrix
   P_ = MatrixXd(5, 5);
 
-  // Process noise standard deviation longitudinal acceleration in m/s^2
-  // Let's assume a cyclist can get to 40 kmph in 5 seconds. That's 11.11 m/s, which means an acceleration of 2.22
-  // m/s^2. Using the rule that sigma_accel = 0.5 * max_accel, we get std_a_ = 1.11
-  std_a_ = 1.11;
+  std_a_ = 0.5;
 
-  // Process noise standard deviation yaw acceleration in rad/s^2
-  // Let's assume a cyclist can execute a 90 degree turn in as little as one second, and that the angular velocity for
-  // their turn looks like this: /\. Their average angular speed during this turn is 0.5*pi rad/s, so their peak speed
-  // is pi rad/s, which they attain after 0.5 seconds. Hence their angular acceleration in this case is 2*pi rad/s^2.
-  // Using the rule that sigma_accel = 0.5 * max_accel, we get std_yawdd_ = pi rad/s^2
-  std_yawdd_ = 3.14;
+  std_yawdd_ = 0.1;
 
   //DO NOT MODIFY measurement noise values below these are provided by the sensor manufacturer.
   // Laser measurement noise standard deviation position1 in m
