@@ -137,6 +137,10 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
  * measurement and this one.
  */
 void UKF::Prediction(double delta_t) {
+  if (debug_x_p_) {
+    cerr << "enter Prediction()" << endl;
+  }
+
   // calculate augmented state mean vector
   VectorXd x_aug(n_aug_);
   x_aug.setZero();
@@ -209,6 +213,12 @@ void UKF::Prediction(double delta_t) {
     diff(3) = tools_.NormalizeAngle(diff(3));
     P_ += weights_(i) * diff * diff.transpose();
   }
+
+  if (debug_x_p_) {
+    cerr << "x_ is now: " << endl << x_ << endl;
+    cerr << "P_ is now:" << endl << P_ << endl;
+    cerr << "exit Prediction()" << endl;
+  }
 }
 
 /**
@@ -216,6 +226,10 @@ void UKF::Prediction(double delta_t) {
  * @param {MeasurementPackage} meas_package
  */
 void UKF::UpdateLidar(MeasurementPackage meas_package) {
+  if (debug_x_p_) {
+    cerr << "enter UpdateLidar()" << endl;
+  }
+
   // lidar measurement is linear, so we just use the standard KF equations instead of UKF
   MatrixXd& H = H_laser_;
   MatrixXd& R = R_laser_;
@@ -229,6 +243,11 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   x_(3) = tools_.NormalizeAngle(x_(3));
   P_ -= K * H * P_;
 
+  if (debug_x_p_) {
+    cerr << "x_ is now:" << endl << x_ << endl;
+    cerr << "P_ is now:" << endl << P_ << endl;
+    cerr << "exit UpdateLidar()" << endl;
+  }
   /**
   TODO:
 
@@ -241,6 +260,10 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
  * @param {MeasurementPackage} meas_package
  */
 void UKF::UpdateRadar(MeasurementPackage meas_package) {
+  if (debug_x_p_) {
+    cerr << "enter UpdateRadar()" << endl;
+  }
+
   // calculate sigma points
   MatrixXd Zsig(3, 2 * n_aug_ + 1);
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {
@@ -292,6 +315,12 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
   // update state covariance matrix
   P_ -= K * S * K.transpose();
+
+  if (debug_x_p_) {
+    cerr << "x_ is now:" << endl << x_ << endl;
+    cerr << "P_ is now:" << endl << P_ << endl;
+    cerr << "exit UpdateRadar()" << endl;
+  }
   /**
   TODO:
 

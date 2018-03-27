@@ -14,6 +14,9 @@ using Eigen::VectorXd;
 class UKF {
 public:
 
+  ///* set to true to print x_ and P_ values at the end of predict and update steps
+  bool debug_x_p_ = false;
+
   ///* initially set to false, set to true in first call of ProcessMeasurement
   bool is_initialized_;
 
