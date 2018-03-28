@@ -228,24 +228,31 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 
   VectorXd y = meas_package.raw_measurements_ - H * x_;
   MatrixXd S = H * P_ * H.transpose() + R;
+  MatrixXd Sinv = S.inverse();
 
-  MatrixXd K = P_ * H.transpose() * S.inverse();
+  MatrixXd K = P_ * H.transpose() * Sinv;
 
   x_ += K * y;
   P_ -= K * H * P_;
 
   x_(3) = tools_.NormalizeAngle(x_(3));
 
+  if (debug_nis_) {
+    double nis = y.transpose() * Sinv * y;
+    cerr << "laser: NIS = " << nis << endl;
+
+    nis_laser_tot_ += 1;
+    if (nis < NIS_LASER_EXPECTED_P95) {
+      nis_laser_ok_ += 1;
+    }
+    cerr << "laser: NIS pct below target P95 = " << nis_laser_ok_ * 100.0 / nis_laser_tot_ << endl;
+  }
+
   if (debug_x_p_) {
     cerr << "x_ is now:" << endl << x_ << endl;
     cerr << "P_ is now:" << endl << P_ << endl;
     cerr << "exit UpdateLidar()" << endl;
   }
-  /**
-  TODO:
-
-  You'll also need to calculate the lidar NIS.
-  */
 }
 
 /**
@@ -288,6 +295,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     S += weights_(i) * diff * diff.transpose();
   }
   S += R_radar_;
+  MatrixXd Sinv = S.inverse();
 
   // compute cross correlation matrix T
   MatrixXd T(n_x_, 3);
@@ -297,7 +305,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   }
 
   // compute Kalman gain
-  MatrixXd K = T * S.inverse();
+  MatrixXd K = T * Sinv;
 
   // calculate innovation
   VectorXd y = meas_package.raw_measurements_ - z_pred;
@@ -310,14 +318,20 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
   x_(3) = tools_.NormalizeAngle(x_(3));
 
+  if (debug_nis_) {
+    double nis = y.transpose() * Sinv * y;
+    cerr << "radar: NIS = " << nis << endl;
+
+    nis_radar_tot_ += 1;
+    if (nis < NIS_RADAR_EXPECTED_P95) {
+      nis_radar_ok_ += 1;
+    }
+    cerr << "radar: NIS pct below target P95 = " << nis_radar_ok_ * 100.0 / nis_radar_tot_ << endl;
+  }
+
   if (debug_x_p_) {
     cerr << "x_ is now:" << endl << x_ << endl;
     cerr << "P_ is now:" << endl << P_ << endl;
     cerr << "exit UpdateRadar()" << endl;
   }
-  /**
-  TODO:
-
-  You'll also need to calculate the radar NIS.
-  */
 }

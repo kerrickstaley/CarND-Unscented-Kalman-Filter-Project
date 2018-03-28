@@ -11,11 +11,29 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
+const double NIS_LASER_EXPECTED_P95 = 5.991;
+const double NIS_RADAR_EXPECTED_P95 = 7.815;
+
 class UKF {
 public:
 
   ///* set to true to print x_ and P_ values at the end of predict and update steps
   bool debug_x_p_ = false;
+
+  ///* set to true to print NIS and fraction of NIS scores that are under the expected P95 value
+  bool debug_nis_ = true;
+
+  ///* tracks total number of NIS scores calculated for laser
+  uint64_t nis_laser_tot_ = 0;
+
+  ///* tracks number of NIS scores for laser that were less than the P95 target
+  uint64_t nis_laser_ok_ = 0;
+
+  ///* tracks total number of NIS scores calculated for radar
+  uint64_t nis_radar_tot_ = 0;
+
+  ///* tracks number of NIS scores for radar that were less than the P95 target
+  uint64_t nis_radar_ok_ = 0;
 
   ///* initially set to false, set to true in first call of ProcessMeasurement
   bool is_initialized_;
