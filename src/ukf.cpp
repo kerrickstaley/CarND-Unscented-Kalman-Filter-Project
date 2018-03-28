@@ -24,9 +24,9 @@ UKF::UKF() {
   // initial covariance matrix
   P_ = MatrixXd(5, 5);
 
-  std_a_ = 0.5;
+  std_a_ = 1;
 
-  std_yawdd_ = 0.1;
+  std_yawdd_ = 0.2;
 
   //DO NOT MODIFY measurement noise values below these are provided by the sensor manufacturer.
   // Laser measurement noise standard deviation position1 in m
